@@ -1,0 +1,3 @@
+R|B|1004596467|singlefile_ds|singlefile_ds
+R|R|1004596467|singlefile_ds|singlefile_ds|267|204.42.253.253|3.0.0.0/8|204.42.253.253|267 
+R|E|1004596467|singlefile_ds|singlefile_ds|5056|167.142.3.6|12.2.97.0/24|167.142.3.6|5056 7018 10656|10656|||
