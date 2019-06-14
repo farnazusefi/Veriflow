@@ -1,15 +1,19 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.HashSet;
+import java.util.Scanner;
 import java.util.Set;
 
-public class Main {
+import readers.BackBoneReader;
+import readers.AbstractReader;
+import readers.RouteViewReader;
+import trie.Trie;
 
-	public static String decode(String ipMask) {
+public class Main {
+	public static final int ROUTE_VIEW = 1;
+	public static final int BIT_BUCKET = 2;
+
+	public static String decodeIpMask(String ipMask) {
 		String[] splitMask = ipMask.split("/");
 		String[] splitIp = splitMask[0].split("\\.");
 		String output = "";
@@ -28,28 +32,55 @@ public class Main {
 		return binaryString;
 	}
 
-	public static void main(String[] args) throws IOException {
+	// public static String returnIpMaskPart(int inputType, String line) {
+	// String ipMask = null;
+	// if (inputType == ROUTE_VIEW) {
+	// String[] splitLine = line.split("\\|");
+	// if (splitLine[1].equals("E"))
+	// return null;
+	// ipMask = splitLine[7];
+	// } else if (inputType == BIT_BUCKET) {
+	// String[] splitLine = line.split("\\s");
+	// ipMask = splitLine[0];
+	// // System.out.println(ipMask);
+	// }
+	// return ipMask;
+	// }
 
-		RandomAccessFile raf = new RandomAccessFile("201901011200.txt", "r");
-		raf.readLine();
-		Trie trie = new Trie();
-		Set<String> rulesSet = new HashSet<String>();
-		int lineCount = 0;
+	public static void main(String[] args) throws IOException {
 		while (true) {
-			String currentLine = raf.readLine();
-			String[] splitLine = currentLine.split("\\|");
-			if (splitLine[1].equals("E"))
-				break;
-			lineCount++;
-			String ipMask = splitLine[7];
-			String decodedString = decode(ipMask);
-			// System.out.println(ipMask + "\t : \t"+ decodedString);
-			trie.insertIntoTrie(decodedString + "*");
-			rulesSet.add(decodedString);
+			Scanner myObj = new Scanner(System.in); // Create a Scanner object
+			System.out.println("Enter file name (eg.: file.txt):");
+			String fileName = myObj.nextLine();
+			System.out.println("Enter 1 for routeView /2 for backbone:");
+			int inputType = myObj.nextInt();
+			
+			AbstractReader reader;
+			if (inputType == ROUTE_VIEW) {
+				reader = new RouteViewReader(fileName);
+			} else {
+				reader = new BackBoneReader(fileName);
+			}
+
+			Trie trie = new Trie();
+			Set<String> rulesSet = new HashSet<String>();
+			int lineCount = 0;
+
+			while (true) {
+
+				String ipMask = reader.getNextIpMask();
+				if (ipMask == null)
+					break;
+				lineCount++;
+
+				String decodedString = decodeIpMask(ipMask);
+				trie.insertIntoTrie(decodedString + "*");
+				rulesSet.add(decodedString);
+			}
+			System.out.println("ECs Count: " + trie.numberOfECs());
+			System.out.println("Number of Unique rules: " + rulesSet.size());
+			System.out.println("Number of Lines: " + lineCount);
+			reader.closeFile();
 		}
-		System.out.println("ECs Count: " + trie.numberOfECs());
-		System.out.println("Number of Unique rules: " + rulesSet.size());
-		System.out.println("Number of Lines: " + lineCount);
-		raf.close();
 	}
 }
