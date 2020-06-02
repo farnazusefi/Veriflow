@@ -7,6 +7,10 @@ public class TrieNode {
 	private TrieNode starChild;
 	private boolean openLeft;
 	private boolean openRight;
+	private String possibleLeftEC;
+	private String possibleRightEC;
+	private String addedEC;
+	private int nodeValue;
 	
 	public TrieNode() {
 	}
@@ -51,6 +55,46 @@ public class TrieNode {
 		if (leftChild != null)
 			num++;
 		return num;
+	}
+
+	public String getPath() {
+		return getPossibleLeftEC();
+	}
+
+	public void setPath(String path) {
+		this.setPossibleLeftEC(path);
+	}
+
+	public String getPossibleRightEC() {
+		return possibleRightEC;
+	}
+
+	public void setPossibleRightEC(String possibleRighttEC) {
+		this.possibleRightEC = possibleRighttEC;
+	}
+
+	public String getPossibleLeftEC() {
+		return possibleLeftEC;
+	}
+
+	public void setPossibleLeftEC(String possibleLeftEC) {
+		this.possibleLeftEC = possibleLeftEC;
+	}
+
+	public int getNodeValue() {
+		return nodeValue;
+	}
+
+	public void setNodeValue(int nodeValue) {
+		this.nodeValue = nodeValue;
+	}
+
+	public String getAddedEC() {
+		return addedEC;
+	}
+
+	public void setAddedEC(String addedEC) {
+		this.addedEC = addedEC;
 	}
 	
 }

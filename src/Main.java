@@ -1,12 +1,19 @@
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import com.sun.javafx.scene.control.skin.FXVK.Type;
+
+import network.ErrorType;
+import network.Network;
+import network.NetworkError;
 import readers.BackBoneReader;
 import readers.AbstractReader;
 import readers.RouteViewReader;
+import trie.Interval;
 import trie.Trie;
 
 public class Main {
@@ -48,39 +55,34 @@ public class Main {
 	// }
 
 	public static void main(String[] args) throws IOException {
+		Scanner myObj = new Scanner(System.in); // Create a Scanner object
+		System.out.println("Enter network configuration file name (eg.: file.txt):");
+		String fileName = myObj.nextLine();
+		Network network = new Network();
+		network.parseNetworkFromFile(fileName);
+		List<Interval> generatedECs = network.generateECs();
+//		System.out.println(generatedECs);
+		network.checkWellformedness();
+		network.log();
 		while (true) {
-			Scanner myObj = new Scanner(System.in); // Create a Scanner object
-			System.out.println("Enter file name (eg.: file.txt):");
-			String fileName = myObj.nextLine();
-			System.out.println("Enter 1 for routeView /2 for backbone:");
-			int inputType = myObj.nextInt();
-			
-			AbstractReader reader;
-			if (inputType == ROUTE_VIEW) {
-				reader = new RouteViewReader(fileName);
+			System.out.println(
+					"Add rule by entering A#switchIP-rulePrefix-nextHopIP (eg.A#127.0.0.1-128.0.0.0/2-127.0.0.2)");
+			System.out.println(
+					"Remove rule by entering R#switchIP-rulePrefix-nextHopIP (eg.R#127.0.0.1-128.0.0.0/2-127.0.0.2)");
+			System.out.println("Exit by entering E");
+			String input = myObj.nextLine();
+			if (input.startsWith("A"))
+				network.addRuleFromString(input.substring(2));
+			else if (input.startsWith("R"))
+				network.deleteRuleFromString(input.substring(2));
+			else if (input.equals("E")) {
+				break;
 			} else {
-				reader = new BackBoneReader(fileName);
+				System.out.println("Wrong input format!");
+				continue;
 			}
-
-			Trie trie = new Trie();
-			Set<String> rulesSet = new HashSet<String>();
-			int lineCount = 0;
-
-			while (true) {
-
-				String ipMask = reader.getNextIpMask();
-				if (ipMask == null)
-					break;
-				lineCount++;
-
-				String decodedString = decodeIpMask(ipMask);
-				trie.insertIntoTrie(decodedString + "*");
-				rulesSet.add(decodedString);
-			}
-			System.out.println("ECs Count: " + trie.numberOfECs());
-			System.out.println("Number of Unique rules: " + rulesSet.size());
-			System.out.println("Number of Lines: " + lineCount);
-			reader.closeFile();
+			network.log();
 		}
+		myObj.close();
 	}
 }
