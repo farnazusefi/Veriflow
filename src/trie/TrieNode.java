@@ -1,5 +1,8 @@
 package trie;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class TrieNode {
 
 	private TrieNode leftChild;
@@ -9,10 +12,12 @@ public class TrieNode {
 	private boolean openRight;
 	private String possibleLeftEC;
 	private String possibleRightEC;
-	private String addedEC;
 	private int nodeValue;
+	private Interval advertisedInterval;
+	private Set<Interval> ecs;
 	
 	public TrieNode() {
+		ecs = new HashSet<Interval>();
 	}
 
 	public TrieNode getLeftChild() {
@@ -89,12 +94,25 @@ public class TrieNode {
 		this.nodeValue = nodeValue;
 	}
 
-	public String getAddedEC() {
-		return addedEC;
+
+
+	public Set<Interval> getEcs() {
+		return ecs;
 	}
 
-	public void setAddedEC(String addedEC) {
-		this.addedEC = addedEC;
+	public void setEcs(HashSet<Interval> ecs) {
+		this.ecs = ecs;
+	}
+	public void addEC (Interval ec) {
+		this.ecs.add(ec);
+	}
+
+	public Interval getAdvertisedInterval() {
+		return advertisedInterval;
+	}
+
+	public void setAdvertisedInterval(Interval advertisedInterval) {
+		this.advertisedInterval = advertisedInterval;
 	}
 	
 }

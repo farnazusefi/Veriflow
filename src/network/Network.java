@@ -3,8 +3,10 @@ package network;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import Veriflow.ForwardingGraph;
 import trie.Interval;
@@ -95,19 +97,22 @@ public class Network {
 
 	private void addRulesFromFileFormat(RandomAccessFile f) throws IOException {
 		String currentLine = f.readLine();
+//		System.out.println("Begin");
 		while (!currentLine.startsWith("E")) {
-			addRuleFromString(currentLine);
+			Set<Interval> ecs = addRuleFromString(currentLine);
+//			System.out.println("current line: " + currentLine + "\t updatedECs: " + ecs );
 			currentLine = f.readLine();
 		}
+//		System.out.println("End");
 	}
 
-	public void addRuleFromString(String ruleString) {
+	public Set<Interval> addRuleFromString(String ruleString) {
 		String[] split1 = ruleString.split("-");
 		Rule rule = new Rule();
 		rule.setSwitchId(split1[0]);
 		rule.setPrefix(split1[1]);
 		rule.setNextHopId(split1[2]);
-		addRule(rule);
+		return addRule(rule);
 	}
 
 	private void addHostsFromFileFormat(RandomAccessFile fh) throws IOException {
@@ -156,11 +161,15 @@ public class Network {
 	}
 
 	public void checkWellformedness() {
+		checkWellformedness(getECsFromTrie());
+	}
+	public void checkWellformedness(Set<Interval> ecs) {
 		// if (hosts.size() == 0) {
 		// System.err.println("Network has no Hosts!");
 		// return;
 		// }
-		for (Interval ec : generateECs()) {
+		getNetworkErrors().clear();
+		for (Interval ec : ecs) {
 			for (Host host : hosts.values()) {
 				String connectedSwitchId = host.getSwitchId();
 				Switch currentSwitch = switches.get(connectedSwitchId);
@@ -219,22 +228,24 @@ public class Network {
 		this.trie = trie;
 	}
 
-	public void addRule(Rule rule) {
+	public Set<Interval> addRule(Rule rule) {
 		Switch switch1 = switches.get(rule.getSwitchId());
 		switch1.addRule(rule);
 		if (!rulePrefixes.containsKey(rule.getPrefix())) {
-			getTrie().addRule(rule);
+			Set<Interval> updateEcs = getTrie().addRule(rule);
 			rulePrefixes.put(rule.getPrefix(), 1);
+			return updateEcs;
 		} else {
 			rulePrefixes.put(rule.getPrefix(), rulePrefixes.get(rule.getPrefix()) + 1);
+			return new HashSet<Interval>();
 		}
 	}
 
-	public void deleteRule(Rule rule) {
+	public Set<Interval> deleteRule(Rule rule) {
 		String switchId = rule.getSwitchId();
 		Integer count = rulePrefixes.get(rule.getPrefix());
 		rulePrefixes.remove(rule.getPrefix());
-		trie.deleteFromTrie(rule.getPrefix());
+		Set<Interval> affectedECs = trie.deleteFromTrie(rule.getPrefix());
 		if (count != 1)
 			rulePrefixes.put(rule.getPrefix(), count - 1);
 		Switch switch1 = switches.get(switchId);
@@ -245,12 +256,13 @@ public class Network {
 				break;
 			}
 		}
+		return affectedECs;
 	}
 
-	public void log() {
-		List<Interval> generatedECs = generateECs();
-		System.out.println("Number of ECs: " + generatedECs.size());
-		System.out.println("ECs are: " + generatedECs);
+	public void log(Set<Interval> affectedEcs) {
+		System.out.println("Number of ECs: " + getNumberOfECs());
+//		System.out.println("ECs are: " + generatedECs);
+			System.out.println("Number of affected ECs: " + affectedEcs.size());
 		if (getNetworkErrors().size() == 0) {
 			System.out.println("Network is well-formed (No property violations)");
 		} else {
@@ -263,18 +275,21 @@ public class Network {
 
 	}
 
-	public void deleteRuleFromString(String ruleString) {
+	public Set<Interval> deleteRuleFromString(String ruleString) {
 		String[] split1 = ruleString.split("-");
 		Rule rule = new Rule();
 		rule.setSwitchId(split1[0]);
 		rule.setPrefix(split1[1]);
 		rule.setNextHopId(split1[2]);
-		deleteRule(rule);
+		return deleteRule(rule);
 
 	}
 
 	public List<Interval> generateECs() {
 		return trie.generateECs();
+	}
+	public Set<Interval> getECsFromTrie(){
+		return trie.getECListFromTrie();
 	}
 
 }

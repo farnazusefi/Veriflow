@@ -1,0 +1,47 @@
+There are two ways to use this library:
+
+1. PROGRAMMATICALLY
+I developed some test cases shows how the library can be used programmatically. For example, 
+
+//Creating a network
+Network network = new Network();
+network.parseNetworkFromFile("T5.txt");
+
+//Retrieving ECs from a network
+List<Interval> generatedECs = network.generateECs();
+
+//Checking for well-formedness
+network.checkWellformedness();
+
+//Adding a rule manually
+Rule newRule = new Rule();
+newRule.setPrefix("80.0.0.0/4");
+newRule.setNextHopId("127.0.0.7");
+newRule.setSwitchId("127.0.0.11");
+Set<Interval> affectedECs = network.addRule(newRule);
+network.checkWellformedness(affectedECs);
+
+//Removing a rule manually
+network.deleteRule(newRule);
+
+2. COMMAND LINE INTERPRETER
+
+
+There is a command line interface that you can work with using "Main" class.
+
+It first asks for the name of a file that the network has to be initialized with. Examples of the initialization file is put in the project (T1.txt to T4.txt) and the detail of its format is described in Network.txt.
+
+> Enter network configuration file name (eg.: file.txt): T1.txt
+
+Entering the name of a file, the command interpreter reads its content and print some information about the network, including number of ECs and its well-formedness state.
+
+> Number of ECs: 9
+> Network is well-formed (No property violations)
+ 
+The command format for adding rules manually is as follow:
+> A#switchIP-rulePrefix-nextHopIP (eg.A#127.0.0.1-128.0.0.0/2-127.0.0.2)
+
+The command format for removing rules manually is as follow:
+> R#switchIP-rulePrefix-nextHopIP (eg.R#127.0.0.1-128.0.0.0/2-127.0.0.2)
+
+The exit command is "E"
